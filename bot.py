@@ -32,11 +32,6 @@ class Bot:
   @abstractmethod
   def handle_recv(self, data):
     pass
-
-  @abstractmethod
-  def is_filtered (self, data: dict) -> bool:
-    """ Filter data, return True if data is filtered """
-    pass
   
   async def connect(self):
     """ Connect to Discord Gateway """
@@ -101,6 +96,21 @@ class Bot:
 
       if not self.is_filtered(data):
         self.handle_recv(data)
+
+  def is_filtered (self, data: dict) -> bool:
+    """ Filter data, return True if data is filtered """
+    d = data.get('d', None)
+    if d is None or isinstance(d, list):
+      return False
+    
+    guild_id = d.get('guild_id', None)
+    channel_id = d.get('channel_id', None)
+
+    if guild_id is not None and guild_id != self.guild_id:
+      return True
+    if channel_id is not None and channel_id != self.channel_id:
+      return True
+    return False
 
   def __send_request(self, url: str, headers: dict, json: dict):
     """ Handle the flow of sending request """
